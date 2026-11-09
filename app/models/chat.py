@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.document import Document
     from app.models.message import Message
     from app.models.user import User
 
@@ -34,4 +35,12 @@ class Chat(Base):
         back_populates="chat",
         cascade="all, delete-orphan",
         order_by="Message.created_at",
+    )
+    # Files attached to this chat's messages (RAG context). They live and die with the chat.
+    # lazy="raise": async code reads them through the repositories, never via this attribute.
+    documents: Mapped[list["Document"]] = relationship(
+        back_populates="chat",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        lazy="raise",
     )

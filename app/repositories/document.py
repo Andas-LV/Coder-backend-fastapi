@@ -29,12 +29,14 @@ class SearchRow:
 async def create_document(
     session: AsyncSession,
     user_id: uuid.UUID,
+    chat_id: uuid.UUID,
     filename: str,
     pages: int,
     chunks_total: int,
 ) -> Document:
     doc = Document(
         user_id=user_id,
+        chat_id=chat_id,
         filename=filename,
         pages=pages,
         chunks_total=chunks_total,
@@ -100,27 +102,6 @@ def _with_counts():
     )
 
 
-async def list_documents(
-    session: AsyncSession, user_id: uuid.UUID
-) -> list[tuple[Document, int]]:
-    result = await session.execute(
-        _with_counts()
-        .where(Document.user_id == user_id)
-        .order_by(Document.created_at.desc())
-    )
-    return [(doc, count) for doc, count in result.all()]
-
-
-async def get_document(
-    session: AsyncSession, document_id: uuid.UUID, user_id: uuid.UUID
-) -> tuple[Document, int] | None:
-    result = await session.execute(
-        _with_counts().where(Document.id == document_id, Document.user_id == user_id)
-    )
-    row = result.first()
-    return (row[0], row[1]) if row else None
-
-
 async def delete_document(
     session: AsyncSession, document_id: uuid.UUID, user_id: uuid.UUID
 ) -> bool:
@@ -168,3 +149,16 @@ async def search_chunks(
         )
         for r in result.all()
     ]
+
+
+async def get_documents_with_counts(
+    session: AsyncSession, document_ids: list[uuid.UUID]
+) -> list[tuple[Document, int]]:
+    """Fresh status + indexed-chunk count for the given documents (progress polling)."""
+    result = await session.execute(
+        _with_counts()
+        .where(Document.id.in_(document_ids))
+        # the session may already hold these rows; re-read status/error
+        .execution_options(populate_existing=True)
+    )
+    return [(doc, count) for doc, count in result.all()]

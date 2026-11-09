@@ -85,7 +85,9 @@ class DocumentService:
         self.embeddings = embeddings
         self.session_factory = session_factory
 
-    async def ingest(self, user_id: uuid.UUID, filename: str, data: bytes) -> Document:
+    async def ingest(
+        self, user_id: uuid.UUID, chat_id: uuid.UUID, filename: str, data: bytes
+    ) -> Document:
         """Validate and chunk the PDF now (fast), embed it in the background (slow).
 
         Raises IngestError for unreadable PDFs / PDFs without text, so the caller can
@@ -106,7 +108,7 @@ class DocumentService:
             raise IngestError("PDF has no extractable text")
 
         doc = await repo.create_document(
-            self.session, user_id, filename, len(pages), len(parts)
+            self.session, user_id, chat_id, filename, len(pages), len(parts)
         )
         _tasks[doc.id] = asyncio.create_task(
             _index(doc.id, parts, self.embeddings, self.session_factory)

@@ -12,6 +12,20 @@ class ChatCreate(BaseModel):
     model: str | None = None
 
 
+class SourceOut(BaseModel):
+    n: int  # citation number used in the answer: [n]
+    document_id: uuid.UUID
+    filename: str
+    page: int
+    score: float
+
+
+class AttachmentOut(BaseModel):
+    document_id: uuid.UUID
+    filename: str
+    pages: int
+
+
 class MessageCreate(BaseModel):
     content: str = Field(min_length=1)
 
@@ -27,6 +41,8 @@ class MessageOut(BaseModel):
     output_tokens: int | None
     latency_ms: int | None
     cost_usd: Decimal | None
+    sources: list[SourceOut] | None = None
+    attachments: list[AttachmentOut] | None = None
     created_at: datetime
 
 

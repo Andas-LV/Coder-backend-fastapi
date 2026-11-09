@@ -8,6 +8,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 
 if TYPE_CHECKING:
+    from app.models.chat import Chat
     from app.models.chunk import Chunk
     from app.models.user import User
 
@@ -23,6 +24,9 @@ class Document(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
+    chat_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("chats.id", ondelete="CASCADE"), index=True
+    )
     filename: Mapped[str] = mapped_column(String(512))
     pages: Mapped[int] = mapped_column(default=0)
     # python default is for new uploads; server default marks rows that existed before
@@ -37,6 +41,7 @@ class Document(Base):
     )
 
     user: Mapped["User"] = relationship(back_populates="documents")
+    chat: Mapped["Chat"] = relationship(back_populates="documents")
     chunks: Mapped[list["Chunk"]] = relationship(
         back_populates="document", cascade="all, delete-orphan"
     )

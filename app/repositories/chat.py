@@ -5,7 +5,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Chat, Message, User
+from app.models import Chat, Document, Message, User
+from app.models.document import STATUS_READY
 
 
 async def get_or_create_user(
@@ -81,6 +82,8 @@ async def add_message(
     output_tokens: int | None = None,
     latency_ms: int | None = None,
     cost_usd: Decimal | None = None,
+    sources: list[dict] | None = None,
+    attachments: list[dict] | None = None,
 ) -> Message:
     msg = Message(
         chat_id=chat_id,
@@ -91,8 +94,22 @@ async def add_message(
         output_tokens=output_tokens,
         latency_ms=latency_ms,
         cost_usd=cost_usd,
+        sources=sources,
+        attachments=attachments,
     )
     session.add(msg)
     await session.commit()
     await session.refresh(msg)
     return msg
+
+
+async def get_chat_document_ids(
+    session: AsyncSession, chat_id: uuid.UUID
+) -> list[uuid.UUID]:
+    """Fully indexed files of the chat (the ones searchable right now)."""
+    result = await session.scalars(
+        select(Document.id).where(
+            Document.chat_id == chat_id, Document.status == STATUS_READY
+        )
+    )
+    return list(result)

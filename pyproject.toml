@@ -20,6 +20,7 @@ dependencies = [
     "pymupdf>=2.1",
     "python-multipart>=0.0.33",
     "sentence-transformers>=6.2.0",
+    "torch>=2.15.0",
     "sqlalchemy[asyncio]>=2.1.8",
     "tiktoken>=0.14.0",
     "uvicorn[standard]>=0.54.0",
@@ -40,3 +41,12 @@ testpaths = ["tests"]
 
 [tool.ruff]
 extend-exclude = ["migrations/versions"]
+
+# CUDA build of PyTorch on Windows (the default PyPI wheel is CPU-only there).
+[[tool.uv.index]]
+name = "pytorch-cu132"
+url = "https://download.pytorch.org/whl/cu132"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu132", marker = "sys_platform == 'win32'" }
