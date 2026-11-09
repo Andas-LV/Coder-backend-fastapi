@@ -18,6 +18,10 @@ class Settings(BaseSettings):
     ollama_api_key: str
     llm_model: str = "gpt-oss:120b"
     models_cache_ttl_seconds: int = 3600
+    embed_model: str = "BAAI/bge-m3"
+    embed_dim: int = 1024
+    chunk_size: int = 500  # tokens
+    chunk_overlap: int = 50  # tokens
     default_system_prompt: str = "You are a helpful coding assistant."
 
     @property
