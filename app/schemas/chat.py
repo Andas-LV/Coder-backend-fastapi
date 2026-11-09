@@ -17,7 +17,7 @@ class SourceOut(BaseModel):
     document_id: uuid.UUID
     filename: str
     page: int
-    score: float
+    score: float | None  # similarity 0..1; None when the whole document was given
 
 
 class AttachmentOut(BaseModel):
@@ -59,3 +59,9 @@ class ChatOut(BaseModel):
 
 class ChatDetail(ChatOut):
     messages: list[MessageOut]
+
+
+class FileLinkOut(BaseModel):
+    url: str  # presigned link to the object storage; open directly, no auth header
+    filename: str
+    expires_in: int  # seconds the link stays valid

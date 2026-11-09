@@ -11,3 +11,6 @@ wheels/
 
 # Environment
 .env
+
+# Uploaded files (LocalFileStorage, FILES_DIR)
+storage/

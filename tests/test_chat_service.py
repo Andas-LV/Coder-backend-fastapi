@@ -248,3 +248,28 @@ async def test_unreadable_pdf_is_rejected_and_nothing_is_kept(db, chat, attach_e
         await svc.attach_files(chat.id, USER_ID, [("scan.pdf", b"%PDF")])
 
     assert docs.ingested == []  # nothing was created
+
+
+async def test_failure_on_second_file_discards_the_first(db, chat, attach_env):
+    from app.services.storage import StorageError
+
+    class FailsOnSecond:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        async def ingest(self, user_id, chat_id, filename, data):
+            self.calls += 1
+            if self.calls == 2:
+                raise StorageError("put_object", "AccessDenied")
+            return _doc()
+
+    svc = ChatService(
+        None, FakeProvider(), FakeRetriever([]), documents=FailsOnSecond()
+    )
+
+    with pytest.raises(StorageError):
+        await svc.attach_files(
+            chat.id, USER_ID, [("a.pdf", b"%PDF"), ("b.pdf", b"%PDF")]
+        )
+
+    assert attach_env.deleted == [DOC_ID]  # the first, already created file is removed

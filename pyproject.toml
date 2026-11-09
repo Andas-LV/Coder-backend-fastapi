@@ -24,6 +24,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.1.8",
     "tiktoken>=0.14.0",
     "uvicorn[standard]>=0.54.0",
+    "boto3>=1.43.126",
 ]
 
 [dependency-groups]

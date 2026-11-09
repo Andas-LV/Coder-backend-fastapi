@@ -26,6 +26,48 @@ class SearchRow:
     score: float
 
 
+@dataclass
+class DocChunk:
+    """A chunk in reading order (no similarity score): for whole-document context."""
+
+    content: str
+    page: int
+    position: int
+    document_id: uuid.UUID
+    filename: str
+
+
+async def get_documents_text_size(
+    session: AsyncSession, document_ids: list[uuid.UUID]
+) -> int:
+    """Total characters of the documents' chunks; cheap check before loading them."""
+    total = await session.scalar(
+        select(func.coalesce(func.sum(func.char_length(Chunk.content)), 0)).where(
+            Chunk.document_id.in_(document_ids)
+        )
+    )
+    return int(total or 0)
+
+
+async def get_documents_chunks(
+    session: AsyncSession, document_ids: list[uuid.UUID]
+) -> list[DocChunk]:
+    """All chunks of the documents, document by document, in reading order."""
+    rows = await session.execute(
+        select(
+            Chunk.content,
+            Chunk.page,
+            Chunk.position,
+            Chunk.document_id,
+            Document.filename,
+        )
+        .join(Document, Document.id == Chunk.document_id)
+        .where(Chunk.document_id.in_(document_ids))
+        .order_by(Document.created_at, Chunk.position)
+    )
+    return [DocChunk(*r) for r in rows.all()]
+
+
 async def create_document(
     session: AsyncSession,
     user_id: uuid.UUID,
@@ -99,6 +141,22 @@ def _with_counts():
         select(Document, func.count(Chunk.id))
         .outerjoin(Chunk, Chunk.document_id == Document.id)
         .group_by(Document.id)
+    )
+
+
+async def get_chat_document(
+    session: AsyncSession,
+    document_id: uuid.UUID,
+    chat_id: uuid.UUID,
+    user_id: uuid.UUID,
+) -> Document | None:
+    """A file attached in this chat, only if both belong to the user."""
+    return await session.scalar(
+        select(Document).where(
+            Document.id == document_id,
+            Document.chat_id == chat_id,
+            Document.user_id == user_id,
+        )
     )
 
 

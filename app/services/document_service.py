@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import unicodedata
 import uuid
 
 import pymupdf
@@ -12,6 +13,7 @@ from app.models.document import STATUS_FAILED, STATUS_READY
 from app.repositories import document as repo
 from app.services.chunking import split_text
 from app.services.embeddings.base import EmbeddingProvider
+from app.services.storage import document_file_key, get_file_storage
 
 logger = logging.getLogger(__name__)
 
@@ -107,9 +109,22 @@ class DocumentService:
         if not parts:
             raise IngestError("PDF has no extractable text")
 
+        # Browsers/macOS may send decomposed letters (Й as И + U+0306): store the
+        # composed form so the name displays and compares normally.
+        filename = unicodedata.normalize("NFC", filename)
         doc = await repo.create_document(
             self.session, user_id, chat_id, filename, len(pages), len(parts)
         )
+        try:
+            await get_file_storage().save(
+                document_file_key(doc.id),
+                data,
+                filename=filename,
+                content_type="application/pdf",
+            )
+        except Exception:
+            await repo.delete_document(self.session, doc.id, user_id)
+            raise
         _tasks[doc.id] = asyncio.create_task(
             _index(doc.id, parts, self.embeddings, self.session_factory)
         )
