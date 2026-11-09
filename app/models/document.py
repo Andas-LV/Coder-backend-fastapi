@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, ForeignKey, String, func
+from sqlalchemy import DateTime, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -10,6 +10,10 @@ from app.db.base import Base
 if TYPE_CHECKING:
     from app.models.chunk import Chunk
     from app.models.user import User
+
+STATUS_PROCESSING = "processing"
+STATUS_READY = "ready"
+STATUS_FAILED = "failed"
 
 
 class Document(Base):
@@ -21,6 +25,13 @@ class Document(Base):
     )
     filename: Mapped[str] = mapped_column(String(512))
     pages: Mapped[int] = mapped_column(default=0)
+    # python default is for new uploads; server default marks rows that existed before
+    # this column was added (they were fully indexed synchronously) as ready.
+    status: Mapped[str] = mapped_column(
+        String(16), default=STATUS_PROCESSING, server_default=STATUS_READY
+    )
+    error: Mapped[str | None] = mapped_column(Text)
+    chunks_total: Mapped[int] = mapped_column(default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )
