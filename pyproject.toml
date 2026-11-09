@@ -1,0 +1,33 @@
+[project]
+name = "coder-backend-fastapi"
+version = "0.1.0"
+description = "Coder backend (FastAPI)"
+readme = "README.md"
+authors = [
+    { name = "Andas", email = "andassatybaldy@gmail.com" }
+]
+requires-python = ">=3.12.6"
+dependencies = [
+    "alembic>=1.20.1",
+    "anthropic>=2.6.0",
+    "asyncpg>=0.32.0",
+    "fastapi>=0.162.2",
+    "google-genai>=3.0.0",
+    "openai>=3.46.0",
+    "pydantic-settings>=2.16.2",
+    "sqlalchemy[asyncio]>=2.1.8",
+    "tiktoken>=0.14.0",
+    "uvicorn[standard]>=0.54.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.4.1.post1",
+    "ruff>=0.17.4",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
