@@ -14,11 +14,11 @@ class Settings(BaseSettings):
 
     database_url: str
 
-    deepseek_base_url: str = "https://openrouter.ai/api/v1"
-    deepseek_api_key: str
-
-    groq_api_key: str
-    gemini_api_key: str
+    ollama_host: str = "https://ollama.com"
+    ollama_api_key: str
+    llm_model: str = "gpt-oss:120b"
+    models_cache_ttl_seconds: int = 3600
+    default_system_prompt: str = "You are a helpful coding assistant."
 
     @property
     def cors_origins(self) -> list[str]:
