@@ -40,10 +40,12 @@ class OllamaProvider(LLMProvider):
         messages: list[LLMMessage],
         system_prompt: str | None,
         model: str | None = None,
+        temperature: float | None = None,
     ) -> LLMResult:
         model = model or settings.llm_model
+        options = {"temperature": temperature} if temperature is not None else None
         resp = await self._client.chat(
-            model=model, messages=_messages(messages, system_prompt)
+            model=model, messages=_messages(messages, system_prompt), options=options
         )
         return LLMResult(
             text=resp.message.content or "", model=model, usage=_usage(resp)

@@ -46,7 +46,9 @@ class LLMProvider(ABC):
         messages: list[LLMMessage],
         system_prompt: str | None,
         model: str | None = None,
-    ) -> LLMResult: ...
+        temperature: float | None = None,
+    ) -> LLMResult:
+        """temperature=None keeps the model default; providers that cannot set it ignore it."""
 
     @abstractmethod
     def stream(

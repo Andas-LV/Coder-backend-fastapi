@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     chunk_overlap: int = 50  # tokens
     default_system_prompt: str = "You are a helpful coding assistant."
 
+    # RAG quality
+    rewrite_model: str | None = None  # model for query rewriting; None = llm_model
+    rewrite_timeout_s: float = 8.0
+    rag_min_score: float = 0.4  # drop retrieved chunks less similar than this (cosine)
+    history_max_tokens: int = 6000  # token budget for the chat history sent to the LLM
+
     @property
     def cors_origins(self) -> list[str]:
         return [self.client_url, self.local_client_url]

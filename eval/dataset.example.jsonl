@@ -1,0 +1,2 @@
+{"question": "Какую интеграцию для подписи ЭЦП делал кандидат?", "document": "Fullstack_Андас_Сатыбалды.pdf", "evidence": "Интегрировал NCALayer"}
+{"question": "Какие брокеры сообщений знает кандидат?", "document": "Fullstack_Андас_Сатыбалды.pdf", "evidence": "RabbitMQ, Kafka, BullMQ"}
